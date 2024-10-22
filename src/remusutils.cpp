@@ -8,7 +8,7 @@
 namespace fs = std::filesystem;
 
 RemusMap::RemusMap() {
-    name = "null";
+    name = "untitled";
     startPos = Vector2f{64, 64};
 }
 
