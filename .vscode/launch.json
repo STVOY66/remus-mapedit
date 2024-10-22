@@ -8,7 +8,7 @@
             "name": "main",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main.exe",
+            "program": "${workspaceFolder}/remus-mapedit.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
