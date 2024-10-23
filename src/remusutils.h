@@ -29,6 +29,7 @@ struct RemusSprite : Sprite {
 };
 
 struct RemusMapSquare {
+    Vector2i pos;
     bool isWall;
     int IfloorTex;
     int IceilTex;
