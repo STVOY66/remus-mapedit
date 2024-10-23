@@ -2,7 +2,7 @@ CC := g++
 CV := c++2a #c++ version 20
 INC := -I ./src -I ./deps/SDL2/include #include directory flags
 LIB := -L ./src -L ./deps/SDL2/lib #library directory flags
-LFLAGS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image #linking flags
+LFLAGS := -lraylib -lopengl32 -lgdi32 -lwinmm #linking flags
 WFLAGS := -Wno-narrowing #Remove narrowing warnings
 CFLAGS = -g -std=$(CV) $(INC) $(LIB) $(LFLAGS) #consolidates g++ flags
 
