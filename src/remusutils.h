@@ -46,20 +46,18 @@ class RemusMap {
         std::vector<std::string> surfTexNames;
         std::vector<std::string> sprTexNames;
 
+        std::vector<RemusMapSquare> mapSquareData;
+        std::vector<RemusSprite> mapSpriteData;
+
         std::string GetName();
         void SetName(std::string);
         Vector2f GetStartPos();
-
-        void SquarePush(RemusMapSquare);
-        void SpritePush(RemusSprite);
 
         bool WallCheck(int, int);
         bool FloorCheck(int, int);
         bool CeilCheck(int, int);
     private:
         Vector2f startPos;
-        std::vector<RemusMapSquare> mapSquareData;
-        std::vector<RemusSprite> mapSpriteData;
         std::string name;
         std::bitset<128> isWallPos[128]; //max size is 128x128
         std::bitset<128> isFloorPos[128];

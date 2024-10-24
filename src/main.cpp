@@ -13,7 +13,13 @@ TexCache *texCache = NULL;
 RenderTexture2D workTex;
 
 bool init();
-void drawGrid();
+void initWorkGrid();
+
+void draw();
+void drawSquares();
+
+void update();
+
 void close();
 
 
@@ -29,12 +35,14 @@ int main(int argc, char **argv) {
     }
     NPatchInfo testPatch = {Rectangle{0, 0, 400, 400}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
+    workingMap->mapSquareData.push_back({Vector2i{0, 127}, true, 0, 0, 0});
+
     SetTargetFPS(FPS);
-    drawGrid();
+    initWorkGrid();
+    
     while(!WindowShouldClose()) {
-        BeginDrawing();
-            DrawTexturePro(workTex.texture, Rectangle{0, 0, 400, 300}, Rectangle{0, 0, 800, 600}, Vector2{0, 0}, 0.0, WHITE);
-        EndDrawing();
+        draw();
+        update();
     }
 
     // Image exportImage = LoadImageFromTexture(workTex.texture);
@@ -58,7 +66,7 @@ bool init() {
     return flag;
 }
 
-void drawGrid() {
+void initWorkGrid() {
     BeginTextureMode(workTex);
         ClearBackground(DARKGRAY);
         for(int x = 1; x < 8320; x += 65) {
@@ -67,6 +75,25 @@ void drawGrid() {
             }
         }
     EndTextureMode();
+}
+
+void draw() {
+    BeginDrawing();
+        drawSquares();
+        DrawTexturePro(workTex.texture, Rectangle{0, 0, 400, 300}, Rectangle{0, 0, 800, 600}, Vector2{0, 0}, 0.0, WHITE);
+    EndDrawing();
+}
+
+void drawSquares() {
+    BeginTextureMode(workTex);
+        for(auto sqr : workingMap->mapSquareData) {
+            DrawRectangle(sqr.pos.x*65 + 1, sqr.pos.y*65 + 1, 64, 64, WHITE);
+        }
+    EndTextureMode();
+}
+
+void update() {
+    
 }
 
 void close() {
