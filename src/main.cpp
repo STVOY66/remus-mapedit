@@ -7,6 +7,8 @@
 #define LINEOUT(A) std::cout << A << '\n' 
 
 Vector2i winDim = {800, 600};
+Rectangle workSpace = {0, (float)winDim.y*0.05f, (float)winDim.x*0.9f, (float)winDim.y};
+
 
 RemusMap *workingMap = NULL;
 TexCache *texCache = NULL;
@@ -65,7 +67,7 @@ bool init() {
     workingMap->loadFileNames("./resources/wall_textures", "./resources/spr_textures");
     for(std::string surf : workingMap->surfTexNames) LINEOUT(surf);
     zoomScale = 0.5f;
-    workRect = Rectangle{0, -(float)winDim.y*zoomScale, (float)winDim.x*zoomScale, -(float)winDim.y*zoomScale};
+    workRect = Rectangle{0, -(float)winDim.y*zoomScale, ((float)winDim.x-80)*zoomScale, -(float)winDim.y*zoomScale};
     workTex = LoadRenderTexture(4161, 4161);
     texCache = new TexCache();
     texCache->loadDir("./resources");
@@ -87,7 +89,12 @@ void initWorkGrid() {
 void draw() {
     BeginDrawing();
         drawSquares();
-        DrawTexturePro(workTex.texture, workRect, Rectangle{0, 0, (float)winDim.x, (float)winDim.y}, Vector2{0, 0}, 0.0, WHITE);
+        //draw palette space
+        DrawRectangleLines(workSpace.width, workSpace.y, 80, 570, WHITE);
+        //draw toolbar
+        DrawRectangle(0, 0, winDim.x, (float)winDim.y*0.05f, LIGHTGRAY);
+        //draw workspace
+        DrawTexturePro(workTex.texture, workRect, workSpace, Vector2{0, 0}, 0.0, WHITE);
     EndDrawing();
 }
 
