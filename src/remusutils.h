@@ -52,6 +52,8 @@ class RemusMap {
         std::string GetName();
         void SetName(std::string);
         Vector2f GetStartPos();
+        
+        void loadFileNames(std::string, std::string);
 
         bool WallCheck(int, int);
         bool FloorCheck(int, int);
@@ -59,9 +61,7 @@ class RemusMap {
     private:
         Vector2f startPos;
         std::string name;
-        std::bitset<128> isWallPos[128]; //max size is 128x128
-        std::bitset<128> isFloorPos[128];
-        std::bitset<128> isCeilPos[128];
-
-        void loadFileNames(std::string, std::string);
+        std::bitset<64> isWallPos[64]; //max size is 64x64
+        std::bitset<64> isFloorPos[64];
+        std::bitset<64> isCeilPos[64];
 };

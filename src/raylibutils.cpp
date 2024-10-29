@@ -8,6 +8,10 @@
 
 namespace fs = std::filesystem;
 
+void ScaleRect(Rectangle* rect, float scale) {
+    rect->height *= scale; rect->width *= scale;
+}
+
 /******** TEXCACHE ********/
 
 TexCache::TexCache() : filetypes {".jpg", ".jpeg", ".png", ".bmp"} {}

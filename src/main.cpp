@@ -11,6 +11,8 @@ Vector2i winDim = {800, 600};
 RemusMap *workingMap = NULL;
 TexCache *texCache = NULL;
 RenderTexture2D workTex;
+Rectangle workRect;
+float zoomScale;
 
 bool init();
 void initWorkGrid();
@@ -27,15 +29,14 @@ int main(int argc, char **argv) {
     const int FPS = 60;
     std::string sprDir;
     std::string surfDir;
-    workingMap = new RemusMap();
-
+    
     if(!init()) {
         LINEOUT("ERROR: Failed to initialize program.");
         return -1;
     }
     NPatchInfo testPatch = {Rectangle{0, 0, 400, 400}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
 
-    workingMap->mapSquareData.push_back({Vector2i{0, 127}, true, 0, 0, 0});
+    workingMap->mapSquareData.push_back({Vector2i{0, 0}, true, 0, 0, 2});
 
     SetTargetFPS(FPS);
     initWorkGrid();
@@ -60,8 +61,14 @@ bool init() {
     InitWindow(winDim.x, winDim.y, "RemMapEdit");
     if(!IsWindowReady()) flag = true;
 
-    workTex = LoadRenderTexture(8321, 8321);
+    workingMap = new RemusMap();
+    workingMap->loadFileNames("./resources/wall_textures", "./resources/spr_textures");
+    for(std::string surf : workingMap->surfTexNames) LINEOUT(surf);
+    zoomScale = 0.5f;
+    workRect = Rectangle{0, -(float)winDim.y*zoomScale, (float)winDim.x*zoomScale, -(float)winDim.y*zoomScale};
+    workTex = LoadRenderTexture(4161, 4161);
     texCache = new TexCache();
+    texCache->loadDir("./resources");
     
     return flag;
 }
@@ -69,8 +76,8 @@ bool init() {
 void initWorkGrid() {
     BeginTextureMode(workTex);
         ClearBackground(DARKGRAY);
-        for(int x = 1; x < 8320; x += 65) {
-            for(int y = 1; y < 8320; y += 65) {
+        for(int x = 1; x < 4160; x += 65) {
+            for(int y = 1; y < 4160; y += 65) {
                 DrawRectangle(x, y, 64, 64, BLACK);
             }
         }
@@ -80,20 +87,26 @@ void initWorkGrid() {
 void draw() {
     BeginDrawing();
         drawSquares();
-        DrawTexturePro(workTex.texture, Rectangle{0, 0, 400, 300}, Rectangle{0, 0, 800, 600}, Vector2{0, 0}, 0.0, WHITE);
+        DrawTexturePro(workTex.texture, workRect, Rectangle{0, 0, (float)winDim.x, (float)winDim.y}, Vector2{0, 0}, 0.0, WHITE);
     EndDrawing();
 }
 
 void drawSquares() {
+    std::vector<std::string>* surfNames = &workingMap->surfTexNames; 
+    std::vector<std::string>* sprNames = &workingMap->sprTexNames; 
+
     BeginTextureMode(workTex);
         for(auto sqr : workingMap->mapSquareData) {
-            DrawRectangle(sqr.pos.x*65 + 1, sqr.pos.y*65 + 1, 64, 64, WHITE);
+            DrawTexturePro(texCache->cache.at(surfNames->at(sqr.IwallTex)),
+                           Rectangle{0, 0, 64, 64},
+                           Rectangle{(float)sqr.pos.x*65+1, (float)sqr.pos.y*65+1, 64, 64},
+                           Vector2{0, 0}, 0.0, WHITE);
         }
     EndTextureMode();
 }
 
 void update() {
-    
+    //mouse drag
 }
 
 void close() {

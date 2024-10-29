@@ -9,17 +9,17 @@ namespace fs = std::filesystem;
 
 RemusMap::RemusMap() {
     name = "untitled";
-    startPos = Vector2f{64, 64};
+    startPos = Vector2f{32.5f, 32.5f};
 }
 
 RemusMap::RemusMap(std::string n) {
     name = n;
-    startPos = Vector2f{64, 64};
+    startPos = Vector2f{32.5f, 32.5f};
 }
 
 RemusMap::RemusMap(std::string n, std::string sprDir, std::string surfDir) {
     name = n;
-    startPos = Vector2f{64, 64};
+    startPos = Vector2f{32.5f, 32.5f};
     loadFileNames(surfDir, sprDir);
 }
 
@@ -32,7 +32,7 @@ RemusMap::RemusMap(std::string n, std::string sprDir, std::string surfDir, Vecto
 void RemusMap::loadFileNames(std::string surfDir, std::string sprDir) {
     fs::path workSprPath = sprDir;
     fs::path workSurfPath = surfDir;
-    const std::string supportedExt[] = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp", ".jxl", ".avif", ".avifs"};
+    const std::string supportedExt[] = {".jpg", ".jpeg", ".png", ".bmp"};
 
     if(fs::exists(workSprPath))
     for(auto entry : fs::directory_iterator(workSprPath)) {

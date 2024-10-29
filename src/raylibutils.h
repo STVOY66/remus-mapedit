@@ -8,6 +8,8 @@
 
 namespace fs = std::filesystem;
 
+void ScaleRect(Rectangle*, float);
+
 // Class for texture storage
 class TexCache {
     public:
