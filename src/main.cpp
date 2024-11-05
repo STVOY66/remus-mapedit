@@ -209,6 +209,18 @@ void update() {
     }
 
     switch (GetKeyPressed()) {
+        case KEY_R:
+            state &= 0b0011;
+            state |= ST_CEIL;
+            break;
+        case KEY_F:
+            state &= 0b0011;
+            state |= ST_WALL;
+            break;
+        case KEY_V:
+            state &= 0b0011;
+            state |= ST_FLOOR;
+            break;
         case KEY_E:
             state |= ST_DRAW_CLR;
             break;
