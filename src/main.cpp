@@ -30,6 +30,8 @@ enum {
 
 Vector2i winDim = {800, 600};
 Rectangle workSpace = {0, (float)winDim.y*0.05f, (float)winDim.x*0.9f, (float)winDim.y*0.95f};
+Rectangle paletteSpace = {workSpace.width, workSpace.y, (float)winDim.x*0.1f, (float)winDim.y*0.95f};
+Rectangle toolSpace = {0, 0, winDim.x, (float)winDim.y*0.05f};
 char state;
 
 RemusMap *workingMap = NULL;
@@ -42,15 +44,19 @@ float zoomDelt;
 Vector2 mouseDelt;
 Vector2i mouseMap;
 bool mInSpace;
+int penI;
+
 
 bool init();
 void initWorkGrid();
 
 void draw();
 void drawSquares();
-void drawToolBar();
+void drawToolbar();
+void drawPalette();
 
 void update();
+void updInput(int);
 
 void close();
 
@@ -64,9 +70,6 @@ int main(int argc, char **argv) {
         LINEOUT("ERROR: Failed to initialize program.");
         return -1;
     }
-    NPatchInfo testPatch = {Rectangle{0, 0, 400, 400}, 0, 0, 0, 0, NPATCH_NINE_PATCH};
-
-    workingMap->mapSquareData.push_back({Vector2i{0, 0}, true, -1, -1, 2});
 
     SetTargetFPS(FPS);
     
@@ -95,6 +98,7 @@ bool init() {
     for(std::string surf : workingMap->surfTexNames) LINEOUT(surf);
     
     state = 0b0100;
+    penI = 0;
 
     zoomScale = 1.0f;
     zoomDelt = 0.05f;
@@ -122,14 +126,22 @@ void draw() {
     BeginDrawing();
         drawSquares();
         //draw palette space
-        DrawRectangleLines(workSpace.width, workSpace.y, 80, 570, WHITE);
+        drawPalette();
         //draw toolbar
-        DrawRectangle(0, 0, winDim.x, (float)winDim.y*0.05f, LIGHTGRAY);
+        drawToolbar();
         Vector2 mousePos = GetMousePosition();
-        DrawText(TextFormat("MP: (%.3f, %.3f) ; RP: (%.3f, %.3f) ; GP: (%d, %d)", mousePos.x, mousePos.y - workSpace.y, workRect.x, workRect.y, int(mousePos.x + workRect.x)/65, int(mousePos.y - workSpace.y + workRect.y)/65), 0, 0, 20, BLACK);
+        DrawText(TextFormat("MP: (%.3f, %.3f) ; MD: %.3f ; GP: (%d, %d)", mousePos.x, mousePos.y - workSpace.y, GetMouseWheelMove(), int(mousePos.x + workRect.x)/65, int(mousePos.y - workSpace.y + workRect.y)/65), 0, 0, 20, BLACK);
         //draw workspace
         DrawTexturePro(workTex.texture, workRect, workSpace, Vector2{0, 0}, 0.0, WHITE);
     EndDrawing();
+}
+
+void drawPalette() {
+    DrawRectangleLinesEx(paletteSpace, 1.0f, WHITE);
+}
+
+void drawToolbar() {
+    DrawRectangleRec(toolSpace, LIGHTGRAY);
 }
 
 void drawSquares() {
@@ -158,7 +170,7 @@ void drawSquares() {
         }
         //Draw working tile
         if(mInSpace)
-            DrawTexturePro(texCache->cache.at(surfNames->front()),
+            DrawTexturePro(texCache->cache.at(surfNames->at(penI)),
                            Rectangle{0, 0, 64, -64},
                            Rectangle{(float)mouseMap.x*65+1, 4161-(float)mouseMap.y*65-65, 64, 64},
                            Vector2{0, 0}, 0.0, Color{255, 255, 255, 64});
@@ -166,8 +178,6 @@ void drawSquares() {
 }
 
 void update() {
-    int penI = 0;
-
     RemusMapSquare palSqr = {mouseMap, state >> 2 == ST_WALL, (state >> 2 == ST_FLOOR) ? penI : -1, (state >> 2 == ST_CEIL) ? penI : -1, (state >> 2 == ST_WALL) ? penI : -1};
     Rectangle newRect;
 
@@ -208,36 +218,18 @@ void update() {
         }
     }
 
-    switch (GetKeyPressed()) {
-        case KEY_R:
-            state &= 0b0011;
-            state |= ST_CEIL;
-            break;
-        case KEY_F:
-            state &= 0b0011;
-            state |= ST_WALL;
-            break;
-        case KEY_V:
-            state &= 0b0011;
-            state |= ST_FLOOR;
-            break;
-        case KEY_E:
-            state |= ST_DRAW_CLR;
-            break;
-        case KEY_D:
-            state &= ~ST_DRAW_CLR;
-            break;
-        case KEY_P:
-            for(auto sqr : workingMap->mapSquareData) {
-                LINEOUT(sqr.pos.x << " " << sqr.pos.y);
-            }
-            break;
-        default:
-            break;
-    }
+    updInput(GetKeyPressed());
 
-    if(mouseWheel != 0 && mInSpace) {
-        if(zoomScale - mouseWheel*zoomDelt > 0.4f && zoomScale - mouseWheel*zoomDelt < 6.0f) zoomScale -= mouseWheel*zoomDelt;
+    if(mouseWheel != 0) {
+        if(IsKeyDown(KEY_LEFT_SHIFT)) {
+            if((state & ST_SQR_SPR) == 0) {
+                if(penI + mouseWheel >= workingMap->surfTexNames.size()) penI = 0;
+                else if(penI + mouseWheel < 0) penI = workingMap->surfTexNames.size() - 1;
+                else penI += mouseWheel;
+            }
+        } else if(mInSpace) {
+            if(zoomScale - mouseWheel*zoomDelt > 0.4f && zoomScale - mouseWheel*zoomDelt < 6.0f) zoomScale -= mouseWheel*zoomDelt;
+        }
     }
 
     if(zoomScale > 1.5f) zoomDelt = 0.25f;
@@ -249,6 +241,48 @@ void update() {
     newRect.y = workRect.y - mouseDelt.y*zoomScale;
 
     workRect = newRect;
+}
+
+void updInput(int key) {
+    if((state & ST_SQR_SPR) == 0 && state != 0) {
+        if(!IsKeyDown(KEY_LEFT_CONTROL))
+            switch(key) {
+                case KEY_R:
+                    state &= 0b0011;
+                    state |= ST_CEIL;
+                    break;
+                case KEY_F:
+                    state &= 0b0011;
+                    state |= ST_WALL;
+                    break;
+                case KEY_V:
+                    state &= 0b0011;
+                    state |= ST_FLOOR;
+                    break;
+                case KEY_E:
+                    state |= ST_DRAW_CLR;
+                    break;
+                case KEY_D:
+                    state &= ~ST_DRAW_CLR;
+                    break;
+                case KEY_P:
+                    for(auto sqr : workingMap->mapSquareData) {
+                        LINEOUT(sqr.pos.x << " " << sqr.pos.y);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        else
+            switch (key) {
+            case KEY_Z:
+                if(!workingMap->mapSquareData.empty()) workingMap->mapSquareData.pop_back();
+                break;
+            default:
+                break;
+            }
+    }
+        
 }
 
 void close() {
