@@ -5,6 +5,9 @@
 #include <iostream>
 
 #define LINEOUT(A) std::cout << A << '\n'
+#define SETBIT(u, n) (u | (1 << n))
+#define CLEARBIT(u, n) (u & ~(1 << n))
+#define TOGGLEBIT(u, n) (u ^ (1 << n))
 
 /*
     DRAW | CLEAR , SQR | SPR, WALL | CEIL | FLOOR
@@ -20,6 +23,7 @@
     ^TEXTINPUT MODE
 */
 
+// anonymous enums for various flags/signals
 enum {
     ST_DRAW_CLR = 0b0001,
     ST_SQR_SPR = 0b0010,
@@ -169,11 +173,16 @@ void drawSquares() {
                                Vector2{0, 0}, 0.0, ((state & 0b1100) == ST_FLOOR) ? WHITE : Color{255, 255, 255, 64});
         }
         //Draw working tile
-        if(mInSpace)
-            DrawTexturePro(texCache->cache.at(surfNames->at(penI)),
-                           Rectangle{0, 0, 64, -64},
-                           Rectangle{(float)mouseMap.x*65+1, 4161-(float)mouseMap.y*65-65, 64, 64},
-                           Vector2{0, 0}, 0.0, Color{255, 255, 255, 64});
+        if(mInSpace) {
+            if((state & ST_DRAW_CLR) == 0)
+                DrawTexturePro(texCache->cache.at(surfNames->at(penI)),
+                            Rectangle{0, 0, 64, -64},
+                            Rectangle{(float)mouseMap.x*65+1, 4161-(float)mouseMap.y*65-65, 64, 64},
+                            Vector2{0, 0}, 0.0, Color{255, 255, 255, 64});
+            else
+                DrawRectanglePro(Rectangle{(float)mouseMap.x*65+1, 4161-(float)mouseMap.y*65-65, 64, 64},
+                                 Vector2{0, 0}, 0.0, Color{255, 0, 0, 64});
+        }
     EndTextureMode();
 }
 
@@ -184,6 +193,7 @@ void update() {
     mInSpace = CheckCollisionPointRec(GetMousePosition(), workSpace);
     mouseMap = {int(GetMousePosition().x*zoomScale + workRect.x)/65, int((GetMousePosition().y - workSpace.y)*zoomScale + workRect.y)/65};
     float mouseWheel = GetMouseWheelMove();
+
     // get mouse delta within workspace
     if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && mInSpace) {
         mouseDelt = GetMouseDelta();
@@ -272,14 +282,6 @@ void updInput(int key) {
                     break;
                 default:
                     break;
-            }
-        else
-            switch (key) {
-            case KEY_Z:
-                if(!workingMap->mapSquareData.empty()) workingMap->mapSquareData.pop_back();
-                break;
-            default:
-                break;
             }
     }
         
