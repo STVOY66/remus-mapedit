@@ -32,7 +32,7 @@ enum {
     ST_FLOOR = 0b1100
 };
 
-Vector2i winDim = {800, 600};
+Vector2i winDim = {1280, 720};
 Rectangle workSpace = {0, (float)winDim.y*0.05f, (float)winDim.x*0.9f, (float)winDim.y*0.95f};
 Rectangle paletteSpace = {workSpace.width, workSpace.y, (float)winDim.x*0.1f, (float)winDim.y*0.95f};
 Rectangle toolSpace = {0, 0, winDim.x, (float)winDim.y*0.05f};
@@ -46,6 +46,7 @@ float zoomScale;
 float zoomDelt;
 
 Vector2 mouseDelt;
+Vector2 mouseWorld;
 Vector2i mouseMap;
 bool mInSpace;
 int penI;
@@ -133,8 +134,6 @@ void draw() {
         drawPalette();
         //draw toolbar
         drawToolbar();
-        Vector2 mousePos = GetMousePosition();
-        DrawText(TextFormat("MP: (%.3f, %.3f) ; MD: %.3f ; GP: (%d, %d)", mousePos.x, mousePos.y - workSpace.y, GetMouseWheelMove(), int(mousePos.x + workRect.x)/65, int(mousePos.y - workSpace.y + workRect.y)/65), 0, 0, 20, BLACK);
         //draw workspace
         DrawTexturePro(workTex.texture, workRect, workSpace, Vector2{0, 0}, 0.0, WHITE);
     EndDrawing();
@@ -146,6 +145,12 @@ void drawPalette() {
 
 void drawToolbar() {
     DrawRectangleRec(toolSpace, LIGHTGRAY);
+
+    DrawText("FILE", toolSpace.height/10, toolSpace.height/20, toolSpace.height, BLACK);
+    
+    DrawRectangle(paletteSpace.x, 0, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_CEIL) ? 255 : 80)});
+    DrawRectangle(paletteSpace.x, toolSpace.height/3, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_WALL) ? 255 : 80)});
+    DrawRectangle(paletteSpace.x, 2*toolSpace.height/3, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_FLOOR) ? 255 : 80)});
 }
 
 void drawSquares() {
@@ -166,11 +171,12 @@ void drawSquares() {
                                Rectangle{0, 0, 64, -64},
                                Rectangle{(float)sqr.pos.x*65+1, 4161-(float)sqr.pos.y*65-65, 64, 64},
                                Vector2{0, 0}, 0.0, ((state & 0b1100) == ST_CEIL) ? WHITE : Color{255, 255, 255, 64});
-            if(sqr.IfloorTex != -1)
-                DrawTexturePro(texCache->cache.at(surfNames->at(sqr.IfloorTex)),
-                               Rectangle{0, 0, 64, -64},
-                               Rectangle{(float)sqr.pos.x*65+1, 4161-(float)sqr.pos.y*65-65, 64, 64},
-                               Vector2{0, 0}, 0.0, ((state & 0b1100) == ST_FLOOR) ? WHITE : Color{255, 255, 255, 64});
+            if((state & 0b1100) != ST_CEIL)
+                if(sqr.IfloorTex != -1)
+                    DrawTexturePro(texCache->cache.at(surfNames->at(sqr.IfloorTex)),
+                                Rectangle{0, 0, 64, -64},
+                                Rectangle{(float)sqr.pos.x*65+1, 4161-(float)sqr.pos.y*65-65, 64, 64},
+                                Vector2{0, 0}, 0.0, ((state & 0b1100) == ST_FLOOR) ? WHITE : Color{255, 255, 255, 64});
         }
         //Draw working tile
         if(mInSpace) {
@@ -188,10 +194,11 @@ void drawSquares() {
 
 void update() {
     RemusMapSquare palSqr = {mouseMap, state >> 2 == ST_WALL, (state >> 2 == ST_FLOOR) ? penI : -1, (state >> 2 == ST_CEIL) ? penI : -1, (state >> 2 == ST_WALL) ? penI : -1};
-    Rectangle newRect;
+    Rectangle newRect = workRect;
 
     mInSpace = CheckCollisionPointRec(GetMousePosition(), workSpace);
-    mouseMap = {int(GetMousePosition().x*zoomScale + workRect.x)/65, int((GetMousePosition().y - workSpace.y)*zoomScale + workRect.y)/65};
+    mouseWorld = {GetMousePosition().x*zoomScale + workRect.x, (GetMousePosition().y - workSpace.y)*zoomScale + workRect.y};
+    mouseMap = {int(mouseWorld.x)/65, int(mouseWorld.y)/65};
     float mouseWheel = GetMouseWheelMove();
 
     // get mouse delta within workspace
@@ -247,8 +254,9 @@ void update() {
 
     newRect.width = workSpace.width*zoomScale;
     newRect.height = workSpace.height*zoomScale;
-    newRect.x = workRect.x - mouseDelt.x*zoomScale;
-    newRect.y = workRect.y - mouseDelt.y*zoomScale;
+
+    newRect.x -= mouseDelt.x*zoomScale;
+    newRect.y -= mouseDelt.y*zoomScale;
 
     workRect = newRect;
 }
