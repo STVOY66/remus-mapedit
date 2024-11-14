@@ -33,15 +33,23 @@ enum {
 };
 
 Vector2i winDim = {1280, 720};
+
 Rectangle workSpace = {0, (float)winDim.y*0.05f, (float)winDim.x*0.9f, (float)winDim.y*0.95f};
 Rectangle paletteSpace = {workSpace.width, workSpace.y, (float)winDim.x*0.1f, (float)winDim.y*0.95f};
 Rectangle toolSpace = {0, 0, winDim.x, (float)winDim.y*0.05f};
+
+Rectangle layerSource;
+Rectangle layerDest;
+
 char state;
 
 RemusMap *workingMap = NULL;
 TexCache *texCache = NULL;
+std::vector<UI_RectButton> toolButtons;
+
 RenderTexture2D workTex;
 Rectangle workRect;
+
 float zoomScale;
 float zoomDelt;
 
@@ -49,8 +57,8 @@ Vector2 mouseDelt;
 Vector2 mouseWorld;
 Vector2i mouseMap;
 bool mInSpace;
-int penI;
 
+int penI;
 
 bool init();
 void initWorkGrid();
@@ -114,6 +122,9 @@ bool init() {
 
     texCache = new TexCache();
     texCache->loadDir("./resources");
+
+    layerDest = Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height};
+    layerSource = Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16};
     
     return flag;
 }
@@ -289,6 +300,8 @@ void updInput(int key) {
                 default:
                     break;
             }
+            // layer display icon updates after state change.
+            layerSource.x = (float)(((state & 12)/4) - 1)*16;
     }
         
 }

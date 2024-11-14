@@ -10,8 +10,8 @@ namespace fs = std::filesystem;
 
 struct UI_RectButton {
     std::string name;
-    Rectangle rect;
     std::string tex;
+    Rectangle rect;
 };
 
 void ScaleRect(Rectangle*, float);
