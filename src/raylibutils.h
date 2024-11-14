@@ -8,10 +8,17 @@
 
 namespace fs = std::filesystem;
 
+enum buttState {
+    BUTT_ISIDLE,
+    BUTT_ISHOVER,
+    BUTT_ISPRESS
+};
+
 struct UI_RectButton {
-    std::string name;
     std::string tex;
-    Rectangle rect;
+    Rectangle destRect;
+    Rectangle srcRect;
+    buttState state;
 };
 
 void ScaleRect(Rectangle*, float);

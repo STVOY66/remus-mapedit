@@ -3,6 +3,7 @@
 #include "remusutils.h"
 #include "raylibutils.h"
 #include <iostream>
+#include <map>
 
 #define LINEOUT(A) std::cout << A << '\n'
 #define SETBIT(u, n) (u | (1 << n))
@@ -38,14 +39,11 @@ Rectangle workSpace = {0, (float)winDim.y*0.05f, (float)winDim.x*0.9f, (float)wi
 Rectangle paletteSpace = {workSpace.width, workSpace.y, (float)winDim.x*0.1f, (float)winDim.y*0.95f};
 Rectangle toolSpace = {0, 0, winDim.x, (float)winDim.y*0.05f};
 
-Rectangle layerSource;
-Rectangle layerDest;
-
 char state;
 
 RemusMap *workingMap = NULL;
 TexCache *texCache = NULL;
-std::vector<UI_RectButton> toolButtons;
+std::map<std::string, UI_RectButton> buttons;
 
 RenderTexture2D workTex;
 Rectangle workRect;
@@ -61,18 +59,20 @@ bool mInSpace;
 int penI;
 
 bool init();
+void initButtons();
 void initWorkGrid();
 
 void draw();
 void drawSquares();
 void drawToolbar();
 void drawPalette();
+void drawButtons();
 
 void update();
 void updInput(int);
+void updButts(Vector2);
 
 void close();
-
 
 int main(int argc, char **argv) {
     const int FPS = 60;
@@ -123,10 +123,16 @@ bool init() {
     texCache = new TexCache();
     texCache->loadDir("./resources");
 
-    layerDest = Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height};
-    layerSource = Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16};
-    
+    initButtons();
+
     return flag;
+}
+
+void initButtons() {
+    buttons.insert({"layers",
+                    UI_RectButton{"icon_layerswitch.png",
+                                  Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height},
+                                  Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16}, BUTT_ISIDLE}});
 }
 
 void initWorkGrid() {
@@ -147,6 +153,7 @@ void draw() {
         drawToolbar();
         //draw workspace
         DrawTexturePro(workTex.texture, workRect, workSpace, Vector2{0, 0}, 0.0, WHITE);
+        drawButtons();
     EndDrawing();
 }
 
@@ -156,10 +163,17 @@ void drawPalette() {
 
 void drawToolbar() {
     DrawRectangleRec(toolSpace, LIGHTGRAY);
-    
-    Rectangle layerDest = Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height};
-    Rectangle layerSource = Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16};
-    DrawTexturePro(texCache->cache.at("icon_layerswitch.png"), layerSource, layerDest, Vector2{0, 0}, 0, WHITE);
+}
+
+void drawButtons() {
+    for(const auto & pair : buttons) {
+        DrawTexturePro(texCache->cache.at(pair.second.tex), pair.second.srcRect, pair.second.destRect, Vector2{0, 0}, 0.0, WHITE);
+        if(pair.second.state != BUTT_ISIDLE) {
+            if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+                DrawRectangleRec(pair.second.destRect, Color{0, 0, 0, 80});
+            } else DrawRectangleRec(pair.second.destRect, Color{255, 255, 255, 80});
+        }
+    }
 }
 
 void drawSquares() {
@@ -245,6 +259,7 @@ void update() {
     }
 
     updInput(GetKeyPressed());
+    updButts(GetMousePosition());
 
     if(mouseWheel != 0) {
         if(IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -300,10 +315,29 @@ void updInput(int key) {
                 default:
                     break;
             }
-            // layer display icon updates after state change.
-            layerSource.x = (float)(((state & 12)/4) - 1)*16;
+            
+            buttons.at("layers").srcRect.x = (float)(((state & 12)/4) - 1)*16;
     }
         
+}
+
+void updButts(Vector2 mpos) {
+    for(auto & pair : buttons) {
+        if(CheckCollisionPointRec(mpos, pair.second.destRect)) {
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                pair.second.state = BUTT_ISPRESS;
+            else
+                pair.second.state = BUTT_ISHOVER;
+        } else {
+            pair.second.state = BUTT_ISIDLE;
+        }
+    }
+
+    if(buttons.at("layers").state == BUTT_ISPRESS) {
+                if((state & 0b1100) == ST_CEIL) updInput(KEY_F);
+                else if((state & 0b1100) == ST_WALL) updInput(KEY_V);
+                else if((state & 0b1100) == ST_FLOOR) updInput(KEY_R);
+    }
 }
 
 void close() {
