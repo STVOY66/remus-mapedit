@@ -145,12 +145,10 @@ void drawPalette() {
 
 void drawToolbar() {
     DrawRectangleRec(toolSpace, LIGHTGRAY);
-
-    DrawText("FILE", toolSpace.height/10, toolSpace.height/20, toolSpace.height, BLACK);
     
-    DrawRectangle(paletteSpace.x, 0, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_CEIL) ? 255 : 80)});
-    DrawRectangle(paletteSpace.x, toolSpace.height/3, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_WALL) ? 255 : 80)});
-    DrawRectangle(paletteSpace.x, 2*toolSpace.height/3, paletteSpace.width, toolSpace.height/3, Color{255, 0, 0, (unsigned char)(((state & 0b1100) == ST_FLOOR) ? 255 : 80)});
+    Rectangle layerDest = Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height};
+    Rectangle layerSource = Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16};
+    DrawTexturePro(texCache->cache.at("icon_layerswitch.png"), layerSource, layerDest, Vector2{0, 0}, 0, WHITE);
 }
 
 void drawSquares() {
