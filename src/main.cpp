@@ -129,10 +129,26 @@ bool init() {
 }
 
 void initButtons() {
-    buttons.insert({"layers",
+    buttons.insert({"Change Layers",
                     UI_RectButton{"icon_layerswitch.png",
                                   Rectangle{(winDim.x - (paletteSpace.width/2)) - (toolSpace.height/2), 0, toolSpace.height, toolSpace.height},
                                   Rectangle{(float)(((state & 12)/4) - 1)*16, 0, 16, 16}, BUTT_ISIDLE}});
+    buttons.insert({"New Map",
+                    UI_RectButton{"icon_new.png",
+                                  Rectangle{toolSpace.height*(0.05f + 0.0f), toolSpace.height*0.05f, toolSpace.height*0.9f, toolSpace.height*0.9f},
+                                  Rectangle{0, 0, 16, 16}, BUTT_ISIDLE}});
+    buttons.insert({"Open...",
+                    UI_RectButton{"icon_open.png",
+                                  Rectangle{toolSpace.height*(0.05f + 1.0f), toolSpace.height*0.05f, toolSpace.height*0.9f, toolSpace.height*0.9f},
+                                  Rectangle{0, 0, 16, 16}, BUTT_ISIDLE}});
+    buttons.insert({"Save",
+                    UI_RectButton{"icon_save.png",
+                                  Rectangle{toolSpace.height*(0.05f + 2.0f), toolSpace.height*0.05f, toolSpace.height*0.9f, toolSpace.height*0.9f},
+                                  Rectangle{0, 0, 16, 16}, BUTT_ISIDLE}});
+    buttons.insert({"Save As...",
+                    UI_RectButton{"icon_saveas.png",
+                                  Rectangle{toolSpace.height*(0.05f + 3.0f), toolSpace.height*0.05f, toolSpace.height*0.9f, toolSpace.height*0.9f},
+                                  Rectangle{0, 0, 16, 16}, BUTT_ISIDLE}});
 }
 
 void initWorkGrid() {
@@ -170,8 +186,8 @@ void drawButtons() {
         DrawTexturePro(texCache->cache.at(pair.second.tex), pair.second.srcRect, pair.second.destRect, Vector2{0, 0}, 0.0, WHITE);
         if(pair.second.state != BUTT_ISIDLE) {
             if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-                DrawRectangleRec(pair.second.destRect, Color{0, 0, 0, 80});
-            } else DrawRectangleRec(pair.second.destRect, Color{255, 255, 255, 80});
+                DrawRectangleRec(pair.second.destRect, Color{0, 0, 0, 40});
+            } else DrawRectangleRec(pair.second.destRect, Color{255, 255, 255, 40});
         }
     }
 }
@@ -308,15 +324,15 @@ void updInput(int key) {
                     state &= ~ST_DRAW_CLR;
                     break;
                 case KEY_P:
-                    for(auto sqr : workingMap->mapSquareData) {
-                        LINEOUT(sqr.pos.x << " " << sqr.pos.y);
+                    for(auto pair : texCache->cache) {
+                        LINEOUT(pair.first);
                     }
                     break;
                 default:
                     break;
             }
             
-            buttons.at("layers").srcRect.x = (float)(((state & 12)/4) - 1)*16;
+            buttons.at("Change Layers").srcRect.x = (float)(((state & 12)/4) - 1)*16;
     }
         
 }
@@ -333,7 +349,7 @@ void updButts(Vector2 mpos) {
         }
     }
 
-    if(buttons.at("layers").state == BUTT_ISPRESS) {
+    if(buttons.at("Change Layers").state == BUTT_ISPRESS) {
                 if((state & 0b1100) == ST_CEIL) updInput(KEY_F);
                 else if((state & 0b1100) == ST_WALL) updInput(KEY_V);
                 else if((state & 0b1100) == ST_FLOOR) updInput(KEY_R);
