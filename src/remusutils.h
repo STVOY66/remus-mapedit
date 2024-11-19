@@ -54,6 +54,7 @@ class RemusMap {
         Vector2f GetStartPos();
         
         void loadFileNames(std::string, std::string);
+        void loadMap(std::string);
 
         bool WallCheck(int, int);
         bool FloorCheck(int, int);

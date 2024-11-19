@@ -59,18 +59,20 @@ bool mInSpace;
 int penI;
 
 bool init();
-void initButtons();
-void initWorkGrid();
+    void initButtons();
+    void initWorkGrid();
 
 void draw();
-void drawSquares();
-void drawToolbar();
-void drawPalette();
-void drawButtons();
+    void drawSquares();
+    void drawToolbar();
+    void drawPalette();
+    void drawButtons();
 
 void update();
-void updInput(int);
-void updButts(Vector2);
+    void updInput(int);
+    void updButts(Vector2);
+
+void callButt(std::string);
 
 void close();
 
@@ -169,6 +171,7 @@ void draw() {
         drawToolbar();
         //draw workspace
         DrawTexturePro(workTex.texture, workRect, workSpace, Vector2{0, 0}, 0.0, WHITE);
+        //draw buttons
         drawButtons();
     EndDrawing();
 }
@@ -184,29 +187,27 @@ void drawToolbar() {
 
 void drawButtons() {
     Vector2 mousePos = GetMousePosition();
+
     for(const auto & pair : buttons) {
         DrawTexturePro(texCache->cache.at(pair.second.tex), pair.second.srcRect, pair.second.destRect, Vector2{0, 0}, 0.0, WHITE);
         if(pair.second.state != BUTT_ISIDLE) {
             if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 DrawRectangleRec(pair.second.destRect, Color{0, 0, 0, 40});
             } else DrawRectangleRec(pair.second.destRect, Color{255, 255, 255, 40});
-
-            
         }
     }
 
     for(const auto & pair : buttons) {
         if(pair.second.state != BUTT_ISIDLE) {
-            std::string buttName = pair.first;
-            int strLen = MeasureText(buttName.c_str(), 15);
+            const char * buttName = pair.first.c_str();
+            int strLen = MeasureText(buttName, 15);
             if(mousePos.x + strLen > winDim.x) {
-                DrawRectangle(mousePos.x - strLen - 15, mousePos.y - 2, MeasureText(pair.first.c_str(), 15) + 10, 17, DARKGRAY);
-                DrawText(pair.first.c_str(), mousePos.x - strLen - 10, mousePos.y, 15, WHITE);
+                DrawRectangle(mousePos.x - strLen - 15, mousePos.y - 2, MeasureText(buttName, 15) + 10, 17, DARKGRAY);
+                DrawText(buttName, mousePos.x - strLen - 10, mousePos.y, 15, WHITE);
             } else {
-                DrawRectangle(mousePos.x + 10, mousePos.y - 2, MeasureText(pair.first.c_str(), 15) + 10, 17, DARKGRAY);
-                DrawText(pair.first.c_str(), mousePos.x + 15, mousePos.y, 15, WHITE);
+                DrawRectangle(mousePos.x + 10, mousePos.y - 2, MeasureText(buttName, 15) + 10, 17, DARKGRAY);
+                DrawText(buttName, mousePos.x + 15, mousePos.y, 15, WHITE);
             }
-            
         }
     }
 }
@@ -349,6 +350,14 @@ void updInput(int key) {
                     break;
                 default:
                     break;
+            } else {
+                switch(key) {
+                    case KEY_N:
+                        callButt("New Map");
+                        break;
+                    default:
+                        break;
+                }
             }
             
             buttons.at("Change Layers").srcRect.x = (float)(((state & 12)/4) - 1)*16;
@@ -368,19 +377,37 @@ void updButts(Vector2 mpos) {
         }
     }
 
-    if(buttons.at("Change Layers").state == BUTT_ISPRESS) {
-                if((state & 0b1100) == ST_CEIL) updInput(KEY_F);
-                else if((state & 0b1100) == ST_WALL) updInput(KEY_V);
-                else if((state & 0b1100) == ST_FLOOR) updInput(KEY_R);
+    // "Change Layers" button functionality
+    if(buttons.at("Change Layers").state == BUTT_ISPRESS) callButt("Change Layers");
+
+    if(buttons.at("New Map").state == BUTT_ISPRESS) callButt("New Map");
+}
+
+void callButt(std::string buttStr) {
+    if(buttons.count(buttStr) != 0) {
+        auto butt = buttons.at(buttStr);
+
+        if(buttStr == "Change Layers") {
+            if((state & 0b1100) == ST_CEIL) updInput(KEY_F);
+            else if((state & 0b1100) == ST_WALL) updInput(KEY_V);
+            else if((state & 0b1100) == ST_FLOOR) updInput(KEY_R);
+        }
+
+        if(buttStr == "New Map") {
+            delete workingMap;
+            workingMap = new RemusMap();
+            workingMap->loadFileNames("./resources/wall_textures", "./resources/spr_textures");
+        }
     }
 }
 
 void close() {
     LINEOUT("Closing program...");
+    delete workingMap;
 
     LINEOUT("Flushing cache...");
     texCache->flush();
-    texCache = NULL;
+    delete texCache;
 
     UnloadRenderTexture(workTex);
 
