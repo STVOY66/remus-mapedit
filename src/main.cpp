@@ -174,6 +174,7 @@ void draw() {
 }
 
 void drawPalette() {
+    DrawRectangleRec(paletteSpace, BLACK);
     DrawRectangleLinesEx(paletteSpace, 1.0f, WHITE);
 }
 
@@ -182,12 +183,30 @@ void drawToolbar() {
 }
 
 void drawButtons() {
+    Vector2 mousePos = GetMousePosition();
     for(const auto & pair : buttons) {
         DrawTexturePro(texCache->cache.at(pair.second.tex), pair.second.srcRect, pair.second.destRect, Vector2{0, 0}, 0.0, WHITE);
         if(pair.second.state != BUTT_ISIDLE) {
             if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 DrawRectangleRec(pair.second.destRect, Color{0, 0, 0, 40});
             } else DrawRectangleRec(pair.second.destRect, Color{255, 255, 255, 40});
+
+            
+        }
+    }
+
+    for(const auto & pair : buttons) {
+        if(pair.second.state != BUTT_ISIDLE) {
+            std::string buttName = pair.first;
+            int strLen = MeasureText(buttName.c_str(), 15);
+            if(mousePos.x + strLen > winDim.x) {
+                DrawRectangle(mousePos.x - strLen - 15, mousePos.y - 2, MeasureText(pair.first.c_str(), 15) + 10, 17, DARKGRAY);
+                DrawText(pair.first.c_str(), mousePos.x - strLen - 10, mousePos.y, 15, WHITE);
+            } else {
+                DrawRectangle(mousePos.x + 10, mousePos.y - 2, MeasureText(pair.first.c_str(), 15) + 10, 17, DARKGRAY);
+                DrawText(pair.first.c_str(), mousePos.x + 15, mousePos.y, 15, WHITE);
+            }
+            
         }
     }
 }
