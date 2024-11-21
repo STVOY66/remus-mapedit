@@ -59,3 +59,75 @@ void TexCache::flush() {
         cache.clear();
     }
 }
+
+/******** RLDIALOGBOX ********/
+
+rlDialogBox::rlDialogBox() : question ("Input: "), answerLength (16)  {
+    quit = false;
+    winHeight = GetScreenHeight();
+    winWidth = GetScreenWidth();
+    fontSize = winHeight/20;
+    inputWidth = MeasureText(std::string(answerLength, 'W').c_str(), fontSize);
+}
+
+rlDialogBox::rlDialogBox(std::string ques) : answerLength (16) {
+    question = ques;
+
+    quit = false;
+    winHeight = GetScreenHeight();
+    winWidth = GetScreenWidth();
+    fontSize = winHeight/20;
+    inputWidth = MeasureText(std::string(answerLength, 'W').c_str(), fontSize);
+}
+
+rlDialogBox::rlDialogBox(std::string ques, int len) {
+    question = ques;
+    answerLength = len;
+
+    quit = false;
+    winHeight = GetScreenHeight();
+    winWidth = GetScreenWidth();
+    fontSize = winHeight/20;
+    inputWidth = MeasureText(std::string(answerLength, 'W').c_str(), fontSize);
+
+    boxWidth = inputWidth + fontSize; boxHeight = 
+    boxPosX = (winWidth/2) - (boxWidth/2); boxPosY = (winHeight/2) - (boxHeight/2);
+}
+
+void rlDialogBox::getInput(std::string &output) {
+    if(!IsWindowReady()) { std::cout << "ERROR: Raylib window has not been initialized." << std::endl; return; }
+
+    while(!quit) {
+        draw();
+        update();
+    }
+
+}
+
+void rlDialogBox::draw() {
+    BeginDrawing();
+        //DrawRectangle();
+    EndDrawing();
+}
+
+void rlDialogBox::update() {
+    if(IsKeyPressed(KEY_Q)) quit = true;
+}
+
+int rlDialogBox::numQuesLines() {
+    int lineLen = 0;
+    bool nInLine = false;
+    for(int i = 0; i < question.length(); i++, lineLen++) {
+        if(question[i] == '\n') nInLine = true;
+
+        if(lineLen == answerLength && question[i + 1] != '\n') {
+            question.insert(i, "\n");
+            lineLen = 0;
+            continue;
+        }
+
+        if(nInLine && lineLen < answerLength) {
+            question.erase(i);
+        }
+    }
+}

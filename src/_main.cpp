@@ -42,6 +42,8 @@ Rectangle toolSpace = {0, 0, winDim.x, (float)winDim.y*0.05f};
 char state;
 
 RemusMap *workingMap = NULL;
+std::string workingDir = NULL;
+
 TexCache *texCache = NULL;
 std::map<std::string, UI_RectButton> buttons;
 
@@ -111,6 +113,8 @@ bool init() {
     workingMap = new RemusMap();
     workingMap->loadFileNames("./resources/wall_textures", "./resources/spr_textures");
     for(std::string surf : workingMap->surfTexNames) LINEOUT(surf);
+
+    SetWindowTitle(TextFormat("RemMapEdit : \"%s\"", workingMap->name.c_str()));
     
     state = 0b0100;
     penI = 0;
@@ -397,6 +401,14 @@ void callButt(std::string buttStr) {
             delete workingMap;
             workingMap = new RemusMap();
             workingMap->loadFileNames("./resources/wall_textures", "./resources/spr_textures");
+        }
+
+        if(buttStr == "Save as...") {
+            char oldState = state;
+            state = 0b0;
+
+
+            state = oldState;
         }
     }
 }

@@ -39,3 +39,29 @@ class TexCache {
     private:
         std::string filetypes[4];
 };
+
+class rlDialogBox {
+    public:
+        rlDialogBox();
+        rlDialogBox(std::string);
+        rlDialogBox(std::string, int);
+        
+        void getInput(std::string&);
+        void getInput(std::string&, int);
+        void getInput(std::string, std::string&);
+        void getInput(std::string, std::string&, int);
+
+        void changeAnswerLimit(int);
+        void changeQuestion(std::string);
+    private:
+        std::string question;
+        int answerLength, quesLines, winHeight, winWidth,
+            boxWidth, boxHeight, boxPosX, boxPosY,
+            fontSize, inputWidth;
+        bool quit;
+
+        void draw();
+        void update();
+
+        int numQuesLines();
+};
